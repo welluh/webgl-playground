@@ -3,7 +3,6 @@ import * as THREE from 'three';
 let scene;
 let camera;
 let renderer;
-let cube;
 let cubes = [];
 
 (function init() {
