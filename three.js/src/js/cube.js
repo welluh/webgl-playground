@@ -3,7 +3,6 @@ import * as THREE from 'three';
 let scene;
 let camera;
 let renderer;
-let cube;
 let cubes = [];
 
 (function init() {
@@ -25,8 +24,6 @@ let cubes = [];
         depth: 1.5,
     };
     const geometry = new THREE.BoxGeometry(box.width, box.height, box.depth);
-    const material = new THREE.MeshPhongMaterial({ color: 0x44aa88 });  // greenish blue
-    cube = new THREE.Mesh(geometry, material);
     camera.position.z = 4;
 
     {
