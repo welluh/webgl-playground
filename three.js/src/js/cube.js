@@ -1,30 +1,17 @@
 import * as THREE from 'three';
 
-let scene;
-let camera;
-let renderer;
-let cubes = [];
+function main() {
+    const canvas = document.querySelector('#c');
+    const renderer = new THREE.WebGLRenderer({ canvas });
 
-(function init() {
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-    );
+    const fov = 75;
+    const aspect = 2;  // the canvas default
+    const near = 0.1;
+    const far = 5;
+    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    camera.position.z = 2;
 
-    renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
-
-    const box = {
-        width: 1.5,
-        height: 1.5,
-        depth: 1.5,
-    };
-    const geometry = new THREE.BoxGeometry(box.width, box.height, box.depth);
-    camera.position.z = 4;
+    const scene = new THREE.Scene();
 
     {
         const color = 0xFFFFFF;
@@ -34,43 +21,62 @@ let cubes = [];
         scene.add(light);
     }
 
-    cubes.push(...[
+    const boxWidth = 1;
+    const boxHeight = 1;
+    const boxDepth = 1;
+    const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+
+    function makeInstance(geometry, color, x) {
+        const material = new THREE.MeshPhongMaterial({color});
+
+        const cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        cube.position.x = x;
+
+        return cube;
+    }
+
+    const cubes = [
         makeInstance(geometry, 0x44aa88,  0),
-        makeInstance(geometry, 0x8844aa, -3),
-        makeInstance(geometry, 0xaa8844,  3),
-    ]);
+        makeInstance(geometry, 0x8844aa, -2),
+        makeInstance(geometry, 0xaa8844,  2),
+    ];
 
-    animate();
-    window.addEventListener('resize', onResize);
-}());
+    function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement;
+        const pixelRatio = window.devicePixelRatio;
+        const width  = canvas.clientWidth  * pixelRatio | 0;
+        const height = canvas.clientHeight * pixelRatio | 0;
+        const needResize = canvas.width !== width || canvas.height !== height;
+        if (needResize) {
+            renderer.setSize(width, height, false);
+        }
+        return needResize;
+    }
 
-function makeInstance(geometry, color, x) {
-    const material = new THREE.MeshPhongMaterial({color});
+    function render(time) {
+        time *= 0.001;
 
-    const cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
+        if (resizeRendererToDisplaySize(renderer)) {
+            const canvas = renderer.domElement;
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+        }
 
-    cube.position.x = x;
+        cubes.forEach((cube, ndx) => {
+            const speed = 1 + ndx * .1;
+            const rot = time * speed;
+            cube.rotation.x = rot;
+            cube.rotation.y = rot;
+        });
 
-    return cube;
+        renderer.render(scene, camera);
+
+        requestAnimationFrame(render);
+    }
+
+    requestAnimationFrame(render);
 }
 
-function onResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-function animate(time) {
-    time *= 0.001;  // convert time to seconds
-
-    cubes.forEach((cube, ndx) => {
-        const speed = .5 + ndx * .1;
-        const rot = time * speed;
-        cube.rotation.x = rot;
-        cube.rotation.y = rot;
-    });
-
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
-}
+main();
